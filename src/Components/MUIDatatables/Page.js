@@ -42,13 +42,46 @@ class Page extends Component {
         };
     }
 
+    componentDidMount() {
+        
+        // if ([].concat.apply([], this.props.despachos).length === 0) {
+        //     return
+        // }
 
+
+    }
     render() {
         var json = this.props.despachos;
         var data = [];
         var fila = [];
         var pos_factura = 0;
-        var mensaje = "Aún no transcurre el tiempo de retorno mínimo configurado [" + JSON.parse(localStorage.getItem('configuraciones')).tiempoRetorno + " min]"
+        var tiempoRetorno = 5
+
+        var dataConfig = localStorage.getItem('configuraciones')
+        var defaultConfig =[]
+
+        try {
+            defaultConfig=   JSON.parse(localStorage.getItem('configuraciones')).tiempoRetorno
+        } catch {
+              defaultConfig = {
+                tiempoEspera: 5,
+                tiempoRetorno: 5,
+                solicitaCredencialRetorno: "1",
+                tiempoLecturaDespacho: "3000",
+                tiempoLecturaMotorizado: "5000"
+            };
+            localStorage.setItem("configuraciones", JSON.stringify(defaultConfig));
+            // window.location.reload();
+        }
+
+      
+
+
+        if (dataConfig !== null || dataConfig !== "undefined") {
+            tiempoRetorno = JSON.parse(localStorage.getItem('configuraciones')).tiempoRetorno
+        }
+
+        var mensaje = "Aún no transcurre el tiempo de retorno mínimo configurado [" + tiempoRetorno + " min]"
         // var pos_cliente = 1;
         var pos_estado = 2;
         // var pos_zipCode = 3;
@@ -135,7 +168,7 @@ class Page extends Component {
                         var botonMotorizado = "mostrar";
                         var estadoDespacho = ""
                         var estaImpreso = false
-
+                        var esAgregador = false
 
                         if (tableMeta.rowData !== undefined) {
                             var current_factura = tableMeta.rowData[pos_factura];
@@ -160,6 +193,9 @@ class Page extends Component {
                                         estaImpreso = true
                                     }
 
+                                    if (item.Agregador === 1) {
+                                        esAgregador = true
+                                    }
                                 }
                             });
 
@@ -174,38 +210,7 @@ class Page extends Component {
                                     color="primary"
                                     aria-label="Imprimir"
                                     onClick={() => {
-                                        axios
-                                            .get(
-                                                `${API_GET_IMPRIMIR_FACTURA}${
-                                                tableMeta.rowData[pos_factura]
-                                                }/F`
-                                            )
-                                            .then(response => {
-                                                if (response.data.html === null) {
-                                                    this.setState({
-                                                        smShow: false
-                                                    });
-
-                                                    iziToast.warning({
-                                                        title: "La orden " + tableMeta.rowData[pos_factura],
-                                                        message: "Aún no se puede imprimir",
-                                                        timeout: 2500,
-                                                        resetOnHover: true,
-                                                        icon: "material-icons",
-                                                        transitionIn: "flipInX",
-                                                        transitionOut: "flipOutX",
-                                                        position: "topRight"
-                                                    });
-                                                } else {
-                                                    this.setState({
-                                                        htmlFactura: response.data.html,
-                                                        smShow: true
-                                                    });
-                                                }
-                                            })
-                                            .catch(error => {
-                                                Swal.fire("Error", error, "error");
-                                            });
+                                        this.imprimirDespacho(tableMeta.rowData[pos_factura])
                                     }}
                                 >
                                     <Print fontSize="small" />
@@ -219,171 +224,45 @@ class Page extends Component {
                                     onClick={() => {
                                         switch (tableMeta.rowData[pos_estado]) {
                                             case "Por Asignar":
-                                                Swal.fire({
-                                                    title: "Ingrese el código del motorizado",
-                                                    input: "number",
-                                                    inputAttributes: {
-                                                        autocapitalize: "off"
-                                                    },
-                                                    showCancelButton: true,
-                                                    confirmButtonText: "Ok",
-                                                    showLoaderOnConfirm: true,
-                                                    preConfirm: login => {
-                                                        var contenidoPost = {
-                                                            codigo_restaurante: localStorage.getItem(
-                                                                "rst_id"
-                                                            ),
-                                                            codigo_tarjeta: login,
-                                                            codigo_factura: tableMeta.rowData[pos_factura]
-                                                        };
 
-                                                        return axios
-                                                            .post(
-                                                                `${API_POST_ASIGNAR_MOTORIZADO}`,
-                                                                contenidoPost
-                                                            )
-                                                            .then(response => {
-                                                                if (response.data.estado !== "200") {
-                                                                    throw new Error(response.data.mensaje);
-                                                                }
-                                                                return response.data;
-                                                            })
-                                                            .catch(error => {
-                                                                Swal.showValidationMessage(`Mensaje: ${error}`);
-                                                            });
-                                                    },
-                                                    allowOutsideClick: () => !Swal.isLoading()
-                                                }).then(result => {
-                                                    if (result.dismiss !== "cancel") {
-                                                        console.log("case  : Pos Asignar ");
-                                                        this.props.obtenerJsonMotorizados();
-                                                        this.actualizaDispositivosYcargarDespachos();
-                                                    }
+                                                this.colocarEstadoAsignado(tableMeta.rowData[pos_factura])
 
-                                                    if (result.value) {
-                                                        Swal.fire(
-                                                            "Asignado!",
-                                                            "El motorizado se asignó al despacho con éxito.",
-                                                            "success"
-                                                        );
-                                                    }
-                                                });
                                                 break;
 
-                                            case "Asignado": // next, en camino
-                                                var parametros = {
-                                                    codigo_restaurante: localStorage.getItem("rst_id"),
-                                                    codigo_factura: tableMeta.rowData[pos_factura]
-                                                };
+                                            case "Asignado":
 
-                                                Swal.fire({
-                                                    title: "Colocar en camino?",
-                                                    text:
-                                                        "Desea que el pedido " +
-                                                        tableMeta.rowData[pos_estado] +
-                                                        " Se envíe en este momento",
-                                                    type: "warning",
-                                                    showCancelButton: true,
-                                                    confirmButtonColor: "#3085d6",
-                                                    cancelButtonColor: "#d33",
-                                                    confirmButtonText: "Si, colocar"
-                                                }).then(result => {
-                                                    if (result.value) {
-                                                        // Consume ws colocar al motorolo en camino
-                                                        axios
-                                                            .post(
-                                                                `${API_POST_EN_CAMINO_MOTORIZADO}`,
-                                                                parametros
-                                                            )
-                                                            .then(response => {
-                                                                if (response.data.status !== "200") {
-                                                                    Swal.fire("Error", "error");
-                                                                }
+                                                if (esAgregador) {
+                                                    // si el despacho es de un agregador colocar a estado entregado directamente.
+                                                    this.estadoEntregado_funcion_directa(tableMeta.rowData[pos_factura])
 
-                                                                // consume ws para colocar el secuencial  a la factura.
-                                                                axios
-                                                                    .post(`${API_POST_SECUENCIAL}`, parametros)
-                                                                    .then(response => {
-                                                                        console.log(
-                                                                            "WS API_POST_SECUENCIAL ",
-                                                                            response.data
-                                                                        );
-                                                                        if (response.data.status !== "200") {
-                                                                            Swal.fire("Error", "error");
-                                                                        }
+                                                    this.actualizaDispositivosYcargarDespachos();
+                                                    this.props.obtenerJsonMotorizados();
 
-                                                                        parametros = {
-                                                                            codigo_factura:
-                                                                                tableMeta.rowData[pos_factura],
-                                                                            tipo_comprobante: "F"
-                                                                        };
 
-                                                                        // Consume ws para generar clave de acceso a la factura.
-                                                                        axios
-                                                                            .post(
-                                                                                `${API_POST_CLAVE_ACCESO}`,
-                                                                                parametros
-                                                                            )
-                                                                            .then(response => {
-                                                                                console.log("case  : Asignado ");
-                                                                                this.actualizaDispositivosYcargarDespachos(); // ojo
-                                                                                this.props.obtenerJsonMotorizados();
+                                                } else {
+                                                    this.colocarEstadoEnCamino(tableMeta.rowData[pos_factura])
+                                                }
 
-                                                                                console.log(
-                                                                                    "WS API_POST_CLAVE_ACCESO ",
-                                                                                    response.data
-                                                                                );
 
-                                                                                if (response.data.status !== "200") {
-                                                                                    Swal.fire("Error", "error");
-                                                                                }
-
-                                                                                // Swal.fire(
-                                                                                //   "En camino!",
-                                                                                //   "El motorizado esta en camino",
-                                                                                //   "success"
-                                                                                // );
-
-                                                                                // iziToast.success({
-                                                                                //   title: "Imprimiendo: ",
-                                                                                //   message: "imprimiendo",
-                                                                                //   timeout: 2000,
-                                                                                //   resetOnHover: true,
-                                                                                //   icon: "material-icons",
-                                                                                //   transitionIn: "flipInX",
-                                                                                //   transitionOut: "flipOutX",
-                                                                                //   position: "topRight"
-                                                                                // });
-                                                                            })
-                                                                            .catch(error => {
-                                                                                Swal.fire("Error", error, "error");
-                                                                            });
-                                                                    })
-                                                                    .catch(error => {
-                                                                        Swal.fire("Error", error, "error");
-                                                                    });
-
-                                                                // Swal.fire(
-                                                                //   "En camino!",
-                                                                //   "El motorizado esta en camino",
-                                                                //   "success"
-                                                                // );
-                                                            })
-                                                            .catch(error => {
-                                                                Swal.fire("Error", error, "error");
-                                                            });
-                                                    }
-                                                });
                                                 break;
 
                                             case "En Camino":
+
+
+                                                if (!estaImpreso) {
+                                                    this.imprimirDespacho(tableMeta.rowData[pos_factura])
+                                                }
 
                                                 if (parseInt(JSON.parse(localStorage.getItem('configuraciones')).tiempoRetorno) >=
                                                     parseInt(tableMeta.rowData[pos_t_salida].replace(" min", ""))) {
                                                     this.openModalLoginCredenciales()
                                                 } else {
+
+
                                                     this.colocarEstadoEntregado(tableMeta.rowData[pos_factura])
                                                 }
+
+
 
                                                 break;
 
@@ -391,10 +270,6 @@ class Page extends Component {
                                                 break;
                                         }
                                     }}
-
-
-
-
                                 >
                                     <IconoBoton opcion={estadoDespacho}></IconoBoton>
 
@@ -573,7 +448,7 @@ class Page extends Component {
 
         let smClose = () => this.setState({ smShow: false });
         return (
-            <div>
+            <div id="tablaDatos">
                 <MUIDataTable
                     title={"Ordenes"}
                     data={data}
@@ -581,7 +456,6 @@ class Page extends Component {
                     options={options}
                 // theme={this.getMuiTheme()}
                 />
-
 
                 <Modal
                     size="sm"
@@ -594,13 +468,11 @@ class Page extends Component {
                         content={this.renderContent}
                         onBeforePrint={this.handleBeforePrint}
                         onAfterPrint={this.handleAfterPrint}
+
+
                     />
                     <ImpresionFactura datos={this.state.htmlFactura} ref={this.setRef} />
                 </Modal>
-
-
-
-
 
                 <Login
                     mensaje={mensaje}
@@ -620,6 +492,8 @@ class Page extends Component {
 
 
     openModalLoginCredenciales = () => {
+        //process.env.
+
         this.setState({
             modalLoginVerificador: true
         });
@@ -668,8 +542,6 @@ class Page extends Component {
 
 
     }
-
-
 
     abrirModalLogin() {
         this.props.abrirModalLogin();
@@ -776,7 +648,7 @@ class Page extends Component {
             }
         });
 
-    componentDidMount() { }
+
 
     handleClick = event => {
         this.setState({ anchorEl: Boolean(event.currentTarget) });
@@ -807,9 +679,10 @@ class Page extends Component {
     componentWillUnmount() {
         clearInterval(this.timer);
     }
+    handleAfterPrint = () => { }
 
     // Despues de imprimir
-    handleAfterPrint = () => {
+    actualizarEstadoFacturaImpreso = () => {
 
         var parametros = {
             codigo_factura: localStorage.getItem("current_invoice")
@@ -840,7 +713,198 @@ class Page extends Component {
 
     setRef = ref => (this.componentRef = ref);
 
+    imprimirDespacho = (codigo_factura) => {
 
+        axios
+            .get(
+                `${API_GET_IMPRIMIR_FACTURA}${
+                codigo_factura
+                }/F`
+            )
+            .then(response => {
+
+
+                if (response.data.html === null) {
+                    this.setState({
+                        smShow: false
+                    });
+
+                    iziToast.warning({
+                        title: "La orden " + codigo_factura,
+                        message: "Aún no se puede imprimir",
+                        timeout: 2500,
+                        resetOnHover: true,
+                        icon: "material-icons",
+                        transitionIn: "flipInX",
+                        transitionOut: "flipOutX",
+                        position: "topRight"
+                    });
+                } else {
+                    this.setState({
+                        htmlFactura: response.data.html,
+                        //  smShow: true
+                    });
+
+
+                    this.props.imprimir(response.data.html)
+                    this.actualizarEstadoFacturaImpreso()
+
+
+                }
+            })
+            .catch(error => {
+                Swal.fire("Error", error, "error");
+            });
+
+    }
+
+    colocarEstadoAsignado = (codigo_factura) => {
+        Swal.fire({
+            title: "Ingrese el código del motorizado",
+            input: "number",
+            inputAttributes: {
+                autocapitalize: "off"
+            },
+            showCancelButton: true,
+            confirmButtonText: "Ok",
+            showLoaderOnConfirm: true,
+            preConfirm: login => {
+                var contenidoPost = {
+                    codigo_restaurante: localStorage.getItem(
+                        "rst_id"
+                    ),
+                    codigo_tarjeta: login,
+                    codigo_factura: codigo_factura
+                };
+
+                return axios
+                    .post(
+                        `${API_POST_ASIGNAR_MOTORIZADO}`,
+                        contenidoPost
+                    )
+                    .then(response => {
+                        if (response.data.estado !== "200") {
+                            throw new Error(response.data.mensaje);
+                        }
+                        return response.data;
+                    })
+                    .catch(error => {
+                        Swal.showValidationMessage(`Mensaje: ${error}`);
+                    });
+            },
+            allowOutsideClick: () => !Swal.isLoading()
+        }).then(result => {
+            if (result.dismiss !== "cancel") {
+                console.log("case  : Pos Asignar ");
+                this.props.obtenerJsonMotorizados();
+                this.actualizaDispositivosYcargarDespachos();
+            }
+
+            if (result.value) {
+
+                iziToast.success({
+                    title: "Asignado correctamente.",
+                    message: "",
+                    timeout: 1000,
+                    resetOnHover: true,
+                    icon: "material-icons",
+                    transitionIn: "flipInX",
+                    transitionOut: "flipOutX",
+                    position: "topRight"
+                });
+                // Swal.fire(
+                //     "Asignado!",
+                //     "El motorizado se asignó al despacho con éxito.",
+                //     "success"
+                // );
+            }
+        });
+    }
+
+
+    colocarEstadoEnCamino = (codigo_Factura) => {
+        var parametros = {
+            codigo_restaurante: localStorage.getItem("rst_id"),
+            codigo_factura: codigo_Factura
+        };
+
+        Swal.fire({
+            title: "Colocar en camino?",
+            text:
+                "Desea que el despacho se envíe en este momento",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Si, colocar"
+        }).then(result => {
+            if (result.value) {
+                // Consume ws colocar al motorolo en camino
+                axios
+                    .post(
+                        `${API_POST_EN_CAMINO_MOTORIZADO}`,
+                        parametros
+                    )
+                    .then(response => {
+                        if (response.data.status !== "200") {
+                            Swal.fire("Error", "error");
+                        }
+
+                        // consume ws para colocar el secuencial  a la factura.
+                        axios
+                            .post(`${API_POST_SECUENCIAL}`, parametros)
+                            .then(response => {
+                                console.log(
+                                    "WS API_POST_SECUENCIAL ",
+                                    response.data
+                                );
+                                if (response.data.status !== "200") {
+                                    Swal.fire("Error", "error");
+                                }
+
+                                parametros = {
+                                    codigo_factura: codigo_Factura,
+                                    tipo_comprobante: "F"
+                                };
+
+                                // Consume ws para generar clave de acceso a la factura.
+                                axios
+                                    .post(
+                                        `${API_POST_CLAVE_ACCESO}`,
+                                        parametros
+                                    )
+                                    .then(response => {
+                                        console.log("case  : Asignado ");
+                                        this.actualizaDispositivosYcargarDespachos(); // ojo
+                                        this.props.obtenerJsonMotorizados();
+
+                                        console.log(
+                                            "WS API_POST_CLAVE_ACCESO ",
+                                            response.data
+                                        );
+
+                                        // this.imprimirDespacho(codigo_Factura)
+
+                                        if (response.data.status !== "200") {
+                                            Swal.fire("Error", "error");
+                                        }
+
+                                    })
+                                    .catch(error => {
+                                        Swal.fire("Error", error, "error");
+                                    });
+                            })
+                            .catch(error => {
+                                Swal.fire("Error", error, "error");
+                            });
+
+                    })
+                    .catch(error => {
+                        Swal.fire("Error", error, "error");
+                    });
+            }
+        });
+    }
 
     colocarEstadoEntregado = (codigo_Factura) => {
 
@@ -870,11 +934,25 @@ class Page extends Component {
                         this.actualizaDispositivosYcargarDespachos(); // ojo
                         this.props.obtenerJsonMotorizados();
 
-                        Swal.fire(
-                            "Correcto!",
-                            "El despacho ha sido entregado",
-                            "success"
-                        );
+
+                        iziToast.success({
+                            title: "Correcto: ",
+                            message: "El despacho ha sido entregado",
+                            timeout: 2300,
+                            resetOnHover: true,
+                            icon: "material-icons",
+                            transitionIn: "flipInX",
+                            transitionOut: "flipOutX",
+                            position: "topRight"
+                        });
+
+                        // Swal.fire(
+                        //     "Correcto!",
+                        //     "El despacho ha sido entregado",
+                        //     "success"
+                        // );
+
+
                     })
                     .catch(error => {
                         Swal.fire("Error", error, "error");
@@ -885,8 +963,110 @@ class Page extends Component {
 
     }
 
+    estadoEntregado_funcion_directa = (codigo_Factura) => {
+
+        Swal.fire({
+            title: 'Procesando Agregador',
+            timer: 2200,
+            onBeforeOpen: () => {
+                Swal.showLoading()
+            },
+        })
+
+        var parametros = {
+            codigo_restaurante: localStorage.getItem("rst_id"),
+            codigo_factura: codigo_Factura
+        };
+
+        // ################################################################################################################################
+        // Consume ws colocar al motorolo en camino
+        axios
+            .post(
+                `${API_POST_EN_CAMINO_MOTORIZADO}`,
+                parametros
+            )
+            .then(response => {
+                if (response.data.status !== "200") {
+                    Swal.fire("Error", "error");
+                }
+                // ################################################################################################################################
+                // consume ws para colocar el secuencial  a la factura.
+                axios
+                    .post(`${API_POST_SECUENCIAL}`, parametros)
+                    .then(response => {
+                        console.log(
+                            "WS API_POST_SECUENCIAL ",
+                            response.data
+                        );
+                        if (response.data.status !== "200") {
+                            Swal.fire("Error", "error");
+                        }
+
+                        parametros = {
+                            codigo_factura: codigo_Factura,
+                            tipo_comprobante: "F"
+                        };
+                        // ################################################################################################################################
+                        // Consume ws para generar clave de acceso a la factura.
+                        axios
+                            .post(
+                                `${API_POST_CLAVE_ACCESO}`,
+                                parametros
+                            )
+                            .then(response => {
+
+                                console.log(
+                                    "WS API_POST_CLAVE_ACCESO ",
+                                    response.data
+                                );
+
+                                if (response.data.status !== "200") {
+                                    Swal.fire("Error", "error");
+                                } else {
 
 
+                                    parametros = {
+                                        codigo_restaurante: localStorage.getItem("rst_id"),
+                                        codigo_factura: codigo_Factura
+                                    };
+                                    // ################################################################################################################################
+                                    // Colocar a estado entregado
+                                    axios
+                                        .post(`${API_POST_ENTREGADO}`, parametros)
+                                        .then(response => {
+                                            if (response.data.status !== "200") {
+                                                Swal.fire("Error", "error");
+                                            }
+
+                                            this.imprimirDespacho(codigo_Factura)
+
+                                        })
+                                        .catch(error => {
+                                            Swal.fire("Error", error, "error");
+                                        });
+
+                                    // Fin colocar estado entregado
+
+
+
+                                }
+
+                            })
+                            .catch(error => {
+                                Swal.fire("Error", error, "error");
+                            });
+                    })
+                    .catch(error => {
+                        Swal.fire("Error", error, "error");
+                    });
+
+            })
+            .catch(error => {
+                Swal.fire("Error", error, "error");
+            });
+
+
+    }
 
 }
 

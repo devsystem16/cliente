@@ -4,7 +4,7 @@ import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
+// import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import Slide from "@material-ui/core/Slide";
 
@@ -21,12 +21,24 @@ class Page extends Component {
     this.state = { open: false, text_motivo: "" };
   }
 
+
+ 
+
   handleChangetext_motivo = text_motivo => event => {
     this.setState({ [text_motivo]: event.target.value });
   };
 
   selectmotivo = React.createRef();
   text_motivo = React.createRef();
+
+
+
+  _handleKeyDown =(e)=>{
+    if(e.key === 'Enter' || e.keyCode === 13){
+     this.anularDespacho()
+  }
+}
+
 
   handleClickOpen = () => {
     this.setState({ open: true });
@@ -57,9 +69,12 @@ class Page extends Component {
 
   cargarOpcionesAnulacion = () => {
     const opcionesAnulacion = this.props.opcionesAnulacion
+  if (opcionesAnulacion === undefined )
+  return 
+
     return (<React.Fragment>
       {Object.keys(opcionesAnulacion).map(opcion => (
-        <option value={this.props.opcionesAnulacion[opcion].Cod_Motivo}>
+        <option key={opcion} value={this.props.opcionesAnulacion[opcion].Cod_Motivo}>
          {this.props.opcionesAnulacion[opcion].Descripcion}
          </option>
       ))}
@@ -82,32 +97,34 @@ class Page extends Component {
         >
           <DialogTitle id="alert-dialog-slide-title">{"Anulación"}</DialogTitle>
           <DialogContent>
-            <DialogContentText id="alert-dialog-slide-description">
+            {/* <DialogContentText id="alert-dialog-slide-description"> */}
               <div className="row">
 
                 <Form.Group controlId="exampleForm.ControlSelect1">
                   <Form.Label>Motivo</Form.Label>
                   <Form.Control as="select" ref={this.selectmotivo}>
                     {this.cargarOpcionesAnulacion()}
-                    {/* <option value="1">Pedido Falso</option>
-                    <option value="2">Aumento de Pedido</option> */}
                   </Form.Control>
                 </Form.Group>
               </div>
+  
 
               <div className="row">
                 <TextField
                   id="outlined-textarea"
                   label="Comentario"
                   placeholder="Ingrese un comentario"
-                  multiline
+              
                   margin="normal"
                   variant="outlined"
                   value={this.state.text_motivo}
                   onChange={this.handleChangetext_motivo("text_motivo")}
+                  onKeyDown ={this._handleKeyDown}
                 />
               </div>
-            </DialogContentText>
+            
+            
+            {/* </DialogContentText> */}
           </DialogContent>
           <DialogActions>
             <Button onClick={this.handleClose} color="primary">

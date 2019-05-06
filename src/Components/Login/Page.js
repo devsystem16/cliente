@@ -12,8 +12,8 @@ class Page extends Component {
     super(props);
     this.state = {
       open: this.props.modalLogin,
-      usuario: null,
-      password: null
+      usuario: "",
+      password: ""
     };
   }
 
@@ -48,6 +48,14 @@ class Page extends Component {
 
   };
 
+
+  _handleKeyDown =(e)=>{
+    if(e.key === 'Enter' || e.keyCode === 13){
+      this.login()
+  }
+}
+
+
   render() {
     var open = this.props.modalLogin;
     return (
@@ -68,6 +76,7 @@ class Page extends Component {
             <TextField
               value={this.state.usuario}
               onChange={this.handleChangeUsuario("usuario")}
+              onKeyDown ={this._handleKeyDown}
               autoFocus
               margin="dense"
               id="name"
@@ -78,6 +87,7 @@ class Page extends Component {
             <TextField
                value={this.state.password}
                onChange={this.handleChangePassword("password")}
+               onKeyDown ={this._handleKeyDown}
               margin="dense"
               id="passw"
               label="Contraseña"

@@ -19,7 +19,7 @@ import {
   API_POST_QUITAR_ASIGNACION
 
 } from "../Constants/";
-
+ 
 export default class {
   catchError(error) {
     switch (error.response.status) {
@@ -70,10 +70,14 @@ export default class {
       tiempoLecturaDespacho: "3000",
       tiempoLecturaMotorizado: "5000"
     };
+    localStorage.setItem("configuraciones", JSON.stringify(defaultConfig));
+    console.log("Configuraciones por defecto", defaultConfig)
+
 
     return axios
       .get(`${API_GET_CONIGURACIONES}${localStorage.getItem("rst_id")}`)
       .then(configuraciones => {
+        console.log("Configuraciones resultados", configuraciones)
         localStorage.setItem("configuraciones", JSON.stringify(configuraciones.data[0]));
       })
       .catch(error => {

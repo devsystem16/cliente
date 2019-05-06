@@ -48,13 +48,13 @@ class Motorizado extends Component {
         <td>{Telefono}</td>
         <td>
           <IconButton
-            codigoFactura={Cod_Tarjeta}
+            // codigoFactura={Cod_Tarjeta}
             title="Desactivar motorizado"
             color="secondary"
             aria-label="Delete"
             onClick={e => {
               this.deactivarMotorizado(
-                e.currentTarget.attributes.codigofactura.value
+               Cod_Tarjeta//  e.currentTarget.attributes.codigofactura.value
               );
             }}
           >

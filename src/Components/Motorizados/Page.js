@@ -35,7 +35,7 @@ class Page extends Component {
 
   render() {
     return (
-      <table cellPadding="2" className="table table-hover tabla-despacho">
+      <table cellPadding="2" className="table table-hover tabla-despacho tb-motorizado header_fijo">
         <thead>
           <tr>
             <td>Código</td>
@@ -49,7 +49,7 @@ class Page extends Component {
           <th scope="col">CM</th>
           <th scope="col">Celular</th> */}
         </thead>
-        <tbody>{this.mostrarMotorizados()}</tbody>
+        <tbody> {this.mostrarMotorizados()}</tbody>
       </table>
     );
   }

@@ -1,4 +1,4 @@
-
+ 
 const ip_server ="http://172.17.0.67"
 const puerto="3000"
 const puerto_socket="4001"

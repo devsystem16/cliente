@@ -7,7 +7,7 @@
     background-color: rgb(223, 237, 247);
   }
   
-  .MUIDataTable-tableRoot-3 {
+  #tablaDatos table {
     background-color: white;
     cursor: pointer;
   }
@@ -16,32 +16,50 @@
     height: 0;
   }
   
-  .MUIDataTable-tableRoot-3 tbody tr td {
+  #tablaDatos table tbody tr td {
     padding: 0px;
   }
   
-  .MUIDataTable-tableRoot-3 thead th {
-    /* padding: 0px 5px 0px 5px; */
+
+  #tablaDatos table thead th{
     padding: 0px;
-  
     color: white;
     font-weight: bold;
-    /* background-color: #212529; */
     background-color: rgb(223, 237, 247);
     color: #2e6e9e;
     height: 0px;
     font-weight: normal;
     text-align: center;
   }
+ /*#tablaDatos table thead th {
+  padding: 0px;
+    color: white;
+    font-weight: bold;
+    background-color: rgb(223, 237, 247);
+    color: #2e6e9e;
+    height: 0px;
+    font-weight: normal;
+    text-align: center; 
+  }
+*/
+
+
   .title-1 {
     color: white;
+    margin: 0px;
+    padding: 0px;
+    font-size: 1.1em;
   }
   
-  .MUIDataTable-tableRoot-3 tbody tr td {
+.title-2{
+  font-size: 0.8em;
+}
+  
+  #tablaDatos table tbody tr td {
     /* margin: 0px; */
     text-align: center;
   }
-  .MUIDataTable-tableRoot-3 tbody tr td:active {
+  #tablaDatos table tbody tr td:active {
     /* margin: 0px; */
     color: #2e6e9e;
    
@@ -55,32 +73,23 @@
     margin: 0px;
     max-height: 450px;
   }
+ 
   
-  .MUIDataTable-tableRoot-3 tbody tr td:first-child {
-    /* margin: 0px; */
-    /* display: none ; */
-  }
-  
-  .MUIDataTable-tableRoot-3 thead th:first-child {
-    /* margin: 0px; */
-    /* display: none; */
-   
-  }
-  
-  .MUIDataTable-tableRoot-3 tbody tr {
+  #tablaDatos table tbody tr {
     height: 15px;
     margin: 0px;
     padding: 0px;
   }
   
-  .MUIDataTable-tableRoot-3 thead tr {
+  #tablaDatos table thead tr {
     height: 40px;
     margin: 0px;
     padding: 0px;
   }
-  /* .MUIDataTable-tableRoot-3 thead tr th {
+  #tablaDatos table thead tr th {
      padding: 0px 0px 0px 20px;  
-    */
+      
+  } 
   
   .fondo {
     background-color: white;
@@ -96,8 +105,12 @@
       margin-bottom: 8px;
     }
   
-    .MUIDataTable-tableRoot-3 .MuiSvgIcon-root-99 {
+  
+
+    
+ #tablaDatos table tbody tr td div button {
       margin: 8px; 
+      padding: 20px;;
    }
   
     .title-1 {
@@ -108,22 +121,27 @@
     }
   }
   
-  .MUIDataTable-tableRoot-3 .MuiTableCell-root-132:last-child {
+
+
+
+
+
+  #tablaDatos table .MuiTableCell-root-132:last-child {
     padding-right: 0px;
   }
-  .MUIDataTable-tableRoot-3 .MuiIconButton-root-90 {
+  #tablaDatos table .MuiIconButton-root-90 {
     padding: 0px;
   }
   
-  .MUIDataTable-tableRoot-3 .MuiSvgIcon-root-99 {
-     margin: 3px; 
+  #tablaDatos table .MuiSvgIcon-root-101 {
+     margin: 0px; 
   }
   
-  /* .MUIDataTable-tableRoot-3 thead tr th {
+  /* #tablaDatos table thead tr th {
       font-weight: bold;  
     */
   
-  .MUIDataTable-tableRoot-3 .MUIDataTableHeadCell-toolButton-161 {
+  #tablaDatos table .MUIDataTableHeadCell-toolButton-161 {
     padding: 25px;
   }
   
@@ -134,8 +152,12 @@
     margin-top: 0px;
   }
   
-  
-   
 
+ 
+ #tablaDatos table tbody tr td div button {
+ 
+ padding: 3px 3px 3px 3px ;
+ margin:  0px 8px 0px 8px;
 
-  
+}
+ 

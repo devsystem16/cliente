@@ -9,7 +9,7 @@ class Page extends Component {
         return (
             <header className="col-12 col-md-12">
                 <h4 className="text-center title-1"> Despachos</h4>
-                <div className="text-center title-1">
+                <div className="text-center title-2 title-1">
                     Periodo {fechaPeriodo}, Fecha actual {fechaActual}{" "}
                 </div>
             </header>

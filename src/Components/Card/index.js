@@ -30,7 +30,7 @@ class CardTab extends Component {
             Ocurrió un problema al cargar los datos.
           </Typography>
           <Typography component="p">
-            Para resolver este inconveniente es necesario volver a cargar la página.
+            Para resolver este inconveniente es necesario volver a cargar la página, O verifique el estado del Web Service.
           </Typography>
         </CardContent>
       </CardActionArea>

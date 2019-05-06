@@ -17,6 +17,11 @@ class Page extends Component {
     this.setState({ [codigo_motorizado]: event.target.value });
   };
 
+  _handleKeyDown =(e)=>{
+      if(e.key === 'Enter' || e.keyCode === 13){
+       this.asignarMotorizado()
+    }
+  }
   asignarMotorizado = () => {
     var existeMotorolo = this.props.motorizados.find(motorizado => {
       return motorizado.Cod_Tarjeta === this.state.codigo_motorizado;
@@ -38,6 +43,7 @@ class Page extends Component {
     if (this.state.codigo_motorizado !== "") {
       this.props.asignarMotorizado(this.state.codigo_motorizado, "A");
     } else {
+      
       iziToast.error({
         title: "Error: ",
         message: "Ingrese un código válido",
@@ -71,6 +77,7 @@ class Page extends Component {
                   id="standard-uncontrolle"
                   label="Código motorizado: "
                   margin="normal"
+                  onKeyDown ={this._handleKeyDown}
                 />
               </div>
               <div className="col-sm-2">
