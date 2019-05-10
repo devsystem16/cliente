@@ -525,7 +525,8 @@ class Page extends Component {
 
                     iziToast.error({
                         title: "Error",
-                        message: "Credenciales Incorrectas."
+                        message: "Credenciales Incorrectas.",
+                        position: "topRight"
                     });
 
                 } else {
