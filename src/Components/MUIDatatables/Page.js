@@ -249,7 +249,7 @@ class Page extends Component {
 
                                                 localStorage.setItem("estaImpreso", (estaImpreso) ? "1" : "0")
 
-                                                if (parseInt(JSON.parse(localStorage.getItem('configuraciones')).tiempoRetorno) >=
+                                                if (parseInt(JSON.parse(localStorage.getItem('configuraciones')).tiempoRetorno) >
                                                     parseInt(tableMeta.rowData[pos_t_salida].replace(" min", ""))
                                                     &&
                                                     parseInt(JSON.parse(localStorage.getItem('configuraciones')).solicitaCredencialRetorno)

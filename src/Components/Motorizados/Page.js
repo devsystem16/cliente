@@ -49,7 +49,7 @@ class Page extends Component {
           <th scope="col">CM</th>
           <th scope="col">Celular</th> */}
         </thead>
-        <tbody> {this.mostrarMotorizados()}</tbody>
+        <tbody>{this.mostrarMotorizados()}</tbody>
       </table>
     );
   }
