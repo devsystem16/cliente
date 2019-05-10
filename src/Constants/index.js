@@ -1,4 +1,4 @@
- 
+// const ip_server ="http://localhost"
 const ip_server ="http://172.17.0.67"
 const puerto="3000"
 const puerto_socket="4001"
@@ -25,15 +25,20 @@ export const API_POST_QUITAR_ASIGNACION = _http + "/api/quitarasignacion/";
 export const API_GET_ESTADO_FACTURA = _http + "/api/app/";
 export const API_POST_INSERTAR_AUDITORIA= _http + "/api/app/";
 export const API_GET_OPCIONES_ANULACION = _http + "/api/anulacion/";
-
 export const API_POST_IMPRESION= _http + "/api/impresion/";
-
-export const API_POST_OBTENER_TOKEN_AGREGADOR=    "https://backend.kfc.com.ec/api/authenticate/administrator/";
-export const API_POST_INSERTA_AUDITORIA_KFC=    "https://backend.kfc.com.ec/api/authenticate/administrator/";
-export const API_POST_ACTUALIZA_ESTADO_AGREGADORES= "https://backend.kfc.com.ec/api/authenticate/administrator/";
 export const API_GET_ID_BRING= _http + "/api/bring/";
-export const API_POST_NOTIFICA_BRINGG= "https://admin-api.bringg.com/services/kmae04kd/194b9110-a5ce-4e41-b3b2-f39c6fc9f85d/d2e8346a-a376-408d-a6f4-c335ad9ade33/";
- 
 
 
-// http://172.17.0.67:3000/api/periodo/60
+const url_KFC = "https://backend.kfc.com.ec/api"
+export const API_POST_OBTENER_TOKEN_AGREGADOR= url_KFC+   "/authenticate/administrator/";
+export const API_POST_INSERTA_AUDITORIA_KFC=  url_KFC+   "/authenticate/administrator/";
+export const API_POST_ACTUALIZA_ESTADO_AGREGADORES= url_KFC+  "/authenticate/administrator/";
+export const AIP_ENVIO_ESTADO =url_KFC +  "/order/status/"
+
+
+// pruduccion 
+export const API_POST_NOTIFICA_BRINGG= "https://admin-api.bringg.com/services/kmae04kd/942fe84f-2d5d-4ae9-b4bf-777f5a900c46/4033aa0d-efb3-4e73-b779-f04da705a01d/";
+
+// pruebas
+//export const API_POST_NOTIFICA_BRINGG= "https://admin-api.bringg.com/services/kmae04kd/194b9110-a5ce-4e41-b3b2-f39c6fc9f85d/d2e8346a-a376-408d-a6f4-c335ad9ade33/";
+

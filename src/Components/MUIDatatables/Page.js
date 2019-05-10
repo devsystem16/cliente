@@ -10,7 +10,7 @@ import NotInterested from "@material-ui/icons/NotInterested";
 import MUIDataTable from "mui-datatables";
 import { Button, Modal } from "react-bootstrap";
 import ReactToPrint from "react-to-print";
-
+import Tooltip from '@material-ui/core/Tooltip';
 
 import IconoBoton from './IconoBoton'
 import Api from "../../Services/index";
@@ -25,7 +25,8 @@ import {
     API_POST_CLAVE_ACCESO,
     API_POST_ENTREGADO,
     API_GET_IMPRIMIR_FACTURA,
-    API_GET_LOGIN
+    API_GET_LOGIN,
+    AIP_ENVIO_ESTADO
 } from "../../Constants";
 
 
@@ -42,14 +43,7 @@ class Page extends Component {
         };
     }
 
-    componentDidMount() {
-        
-        // if ([].concat.apply([], this.props.despachos).length === 0) {
-        //     return
-        // }
 
-
-    }
     render() {
         var json = this.props.despachos;
         var data = [];
@@ -58,12 +52,12 @@ class Page extends Component {
         var tiempoRetorno = 5
 
         var dataConfig = localStorage.getItem('configuraciones')
-        var defaultConfig =[]
+        var defaultConfig = []
 
         try {
-            defaultConfig=   JSON.parse(localStorage.getItem('configuraciones')).tiempoRetorno
+            defaultConfig = JSON.parse(localStorage.getItem('configuraciones')).tiempoRetorno
         } catch {
-              defaultConfig = {
+            defaultConfig = {
                 tiempoEspera: 5,
                 tiempoRetorno: 5,
                 solicitaCredencialRetorno: "1",
@@ -71,10 +65,10 @@ class Page extends Component {
                 tiempoLecturaMotorizado: "5000"
             };
             localStorage.setItem("configuraciones", JSON.stringify(defaultConfig));
-            // window.location.reload();
+
         }
 
-      
+
 
 
         if (dataConfig !== null || dataConfig !== "undefined") {
@@ -85,7 +79,7 @@ class Page extends Component {
         // var pos_cliente = 1;
         var pos_estado = 2;
         // var pos_zipCode = 3;
-        // var pos_motorizado = 4;
+        //var pos_motorizado = 4;
         // var pos_t_espera = 5;
         var pos_t_salida = 6;
 
@@ -206,20 +200,25 @@ class Page extends Component {
                             <div>
                                 <IconButton
                                     disabled={estaImpreso}
-                                    title="Imprimir"
+                                    title=""
                                     color="primary"
                                     aria-label="Imprimir"
                                     onClick={() => {
                                         this.imprimirDespacho(tableMeta.rowData[pos_factura])
                                     }}
                                 >
-                                    <Print fontSize="small" />
+                                    <Tooltip title="Imprimir">
+                                        <Print fontSize="small" />
+                                    </Tooltip>
+
+
                                 </IconButton>
+
 
                                 <IconButton
                                     disabled={esManual}
                                     color="inherit"
-                                    title="Opciones motorizado"
+                                    title=""
                                     aria-label="Delete"
                                     onClick={() => {
                                         switch (tableMeta.rowData[pos_estado]) {
@@ -248,16 +247,18 @@ class Page extends Component {
 
                                             case "En Camino":
 
-
-                                                if (!estaImpreso) {
-                                                    this.imprimirDespacho(tableMeta.rowData[pos_factura])
-                                                }
+                                                localStorage.setItem("estaImpreso", (estaImpreso) ? "1" : "0")
 
                                                 if (parseInt(JSON.parse(localStorage.getItem('configuraciones')).tiempoRetorno) >=
-                                                    parseInt(tableMeta.rowData[pos_t_salida].replace(" min", ""))) {
-                                                    this.openModalLoginCredenciales()
-                                                } else {
+                                                    parseInt(tableMeta.rowData[pos_t_salida].replace(" min", ""))
+                                                    &&
+                                                    parseInt(JSON.parse(localStorage.getItem('configuraciones')).solicitaCredencialRetorno)
+                                                    === 1
+                                                ) {
 
+                                                    this.openModalLoginCredenciales()
+
+                                                } else {
 
                                                     this.colocarEstadoEntregado(tableMeta.rowData[pos_factura])
                                                 }
@@ -271,12 +272,13 @@ class Page extends Component {
                                         }
                                     }}
                                 >
+
                                     <IconoBoton opcion={estadoDespacho}></IconoBoton>
 
                                 </IconButton>
 
                                 <IconButton
-                                    title="Anular Orden"
+                                    title=""
                                     color="secondary"
                                     aria-label="Delete"
                                     onClick={() => {
@@ -351,7 +353,10 @@ class Page extends Component {
                                         });
                                     }}
                                 >
-                                    <NotInterested fontSize="small" />
+                                    <Tooltip title="Opciones de anulación">
+                                        <NotInterested fontSize="small" />
+                                    </Tooltip>
+
                                 </IconButton>
                             </div>
                         );
@@ -591,7 +596,7 @@ class Page extends Component {
                                         if (response.status === 200) {
 
                                             api.wsPosInsertaAuditoria(
-                                                "https://backend.kfc.com.ec/api/order/status/",
+                                                AIP_ENVIO_ESTADO,
                                                 `order_id: ${parametro.order_id} , status=${
                                                 parametro.status
                                                 }`,
@@ -602,7 +607,7 @@ class Page extends Component {
                                         } else {
 
                                             api.wsPosInsertaAuditoria(
-                                                "https://backend.kfc.com.ec/api/order/status/",
+                                                AIP_ENVIO_ESTADO,
                                                 `order_id: ${parametro.order_id} , status=${
                                                 parametro.status
                                                 }`,
@@ -722,9 +727,8 @@ class Page extends Component {
                 }/F`
             )
             .then(response => {
-
-
-                if (response.data.html === null) {
+ 
+                if (response.data.html === null ) {
                     this.setState({
                         smShow: false
                     });
@@ -746,9 +750,10 @@ class Page extends Component {
                     });
 
 
-                    this.props.imprimir(response.data.html)
-                    this.actualizarEstadoFacturaImpreso()
-
+                    if (response.data.html !== undefined) {
+                        this.props.imprimir(response.data.html)
+                        this.actualizarEstadoFacturaImpreso()
+                    }
 
                 }
             })
@@ -934,6 +939,11 @@ class Page extends Component {
                         this.actualizaDispositivosYcargarDespachos(); // ojo
                         this.props.obtenerJsonMotorizados();
 
+
+
+                        if (localStorage.getItem("estaImpreso") === "0") {
+                            this.imprimirDespacho(codigo_Factura)
+                        }
 
                         iziToast.success({
                             title: "Correcto: ",

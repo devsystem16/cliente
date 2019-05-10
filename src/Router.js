@@ -27,9 +27,10 @@ import {
   API_POST_CLAVE_ACCESO,
   API_GET_IMPRIMIR_FACTURA,
   API_GET_LOGIN,
-  _http_socket
+  _http_socket,
+  API_POST_NOTIFICA_BRINGG,
+  AIP_ENVIO_ESTADO
 } from "./Constants";
-
 
 
 class Router extends Component {
@@ -227,33 +228,36 @@ class Router extends Component {
       // console.log("Datos periodo : ", response)
 
 
-      if (response.status === 200) {
- 
-        if (response.data !== undefined) {
+      try {
 
-          if (response.data.estado !== 1) {
 
-            if (response.data.estado === 3) {
+        if (response.status === 200) {
+          if (response.data !== undefined) {
+            if (response.data.estado !== 1) {
+              if (response.data.estado === 3) {
+                this.setState({
+                  smModalError: true
+                });
 
-              this.setState({
-                smModalError: true
-              });
-
-            } else {
-
-              Swal.fire({
-                title: response.data.mensaje,
-                animation: true,
-                customClass: {
-                  popup: "animated tada"
-                }
-              });
-
+              } else {
+                Swal.fire({
+                  title: response.data.mensaje,
+                  animation: true,
+                  customClass: {
+                    popup: "animated tada"
+                  }
+                });
+              }
             }
+            this.setState({
+              jsonInfoPeriodo: response.data
+            });
+
+          } else {
+            this.setState({
+              smModalError: true
+            });
           }
-          this.setState({
-            jsonInfoPeriodo: response.data
-          });
 
         } else {
           this.setState({
@@ -261,40 +265,35 @@ class Router extends Component {
           });
         }
 
-      } else {
+      } catch (error) {
         this.setState({
           smModalError: true
         });
       }
 
-
-
     })
-
-
 
   };
 
   getDespachos = () => {
-
     const api = new Api();
     api.ObtenerWsDespachos().then(response => {
+      try {
+        if (response.data.status === undefined) {
+          this.setState({ JsonDespachos: response.data });
 
+          if (([].concat.apply([], this.state.JsonDespachos).length) === 0) {
+            this.setState({
+              detalllesDespacho: []
+            })
+            
+            localStorage.setItem("current_invoice", "")
+          }
 
-
-      if (response.status === 200) {
-        this.setState({ JsonDespachos: response.data });
+          // console.log("Despachos : ", this.state.JsonDespachos)
+        }
+      } catch (error) {
       }
-      else {
-        this.setState({ JsonDespachos: [] });
-      }
-
-      // console.log("Despachos : ", this.state.JsonDespachos)
-
-
-
-
-
     });
   };
 
@@ -325,21 +324,23 @@ class Router extends Component {
     const api = new Api();
     api.obtenerJsonMotorizados()
       .then(response => {
-        if (response.status === 200) {
-          if (response.data !== undefined) {
-            this.setState({
-              JsonMorolos: response.data
-            });
-          } else {
-            this.setState({
-              JsonMorolos: []
-            });
+
+
+        try {
+          if (response.data.status === undefined) {
+            if (response.status === 200) {
+              if (response.data !== undefined) {
+                this.setState({
+                  JsonMorolos: response.data
+                });
+              }
+            }
           }
-        } else {
-          this.setState({
-            JsonMorolos: []
-          });
+
+        } catch (error) {
+
         }
+
       });
   };
 
@@ -484,6 +485,7 @@ class Router extends Component {
               .post(`${API_POST_CLAVE_ACCESO}`, parametros)
               .then(response => {
                 if (response.data.status === "200") {
+
                   iziToast.success({
                     title: "Éxito: ",
                     message: "Despacho Anulado",
@@ -589,14 +591,14 @@ class Router extends Component {
 
                   if (res.data.success) {
                     api.wsPosInsertaAuditoria(
-                      "https://admin-api.bringg.com/services/kmae04kd/194b9110-a5ce-4e41-b3b2-f39c6fc9f85d/d2e8346a-a376-408d-a6f4-c335ad9ade33/",
+                      API_POST_NOTIFICA_BRINGG,
                       `Cancelar Orden : ${localStorage.getItem("current_invoice")}`,
                       response.status,
                       response.data.success
                     );
                   } else {
                     api.wsPosInsertaAuditoria(
-                      "https://admin-api.bringg.com/services/kmae04kd/194b9110-a5ce-4e41-b3b2-f39c6fc9f85d/d2e8346a-a376-408d-a6f4-c335ad9ade33/",
+                      API_POST_NOTIFICA_BRINGG,
                       `Cancelar Orden : ${localStorage.getItem("current_invoice")}`,
                       response.status,
                       response.data
@@ -641,7 +643,7 @@ class Router extends Component {
 
                     if (response.status === 200) {
                       api.wsPosInsertaAuditoria(
-                        "https://backend.kfc.com.ec/api/order/status/",
+                        AIP_ENVIO_ESTADO,
                         `order_id: ${parametro.order_id} , status=${
                         parametro.status
                         }`,
@@ -650,7 +652,7 @@ class Router extends Component {
                       );
                     } else {
                       api.wsPosInsertaAuditoria(
-                        "https://backend.kfc.com.ec/api/order/status/",
+                        AIP_ENVIO_ESTADO,
                         `order_id: ${parametro.order_id} , status=${
                         parametro.status
                         }`,
@@ -686,6 +688,8 @@ class Router extends Component {
 
 
   login = (usuario, password) => {
+
+
     axios
       .get(
         `${API_GET_LOGIN}${usuario}/${password}/${localStorage.getItem(
@@ -698,7 +702,8 @@ class Router extends Component {
 
           iziToast.error({
             title: "Error",
-            message: "Credenciales Incorrectas."
+            message: "Credenciales Incorrectas.",
+            position: "topRight"
           });
         } else {
           if (response.data.acceso === 1) {
